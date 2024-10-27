@@ -1,4 +1,3 @@
 # File Shorter
-Just run the main.exe file it will creat a Files folder and put everything there
+Just run the main.exe file it will create a Files folder and put everything there, fies ans foldders
 
-!!Don't add folders it won't dictate them!!
