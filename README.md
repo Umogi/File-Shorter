@@ -4,13 +4,13 @@ This program organizes files within a given directory ("Files" folder) based on 
 
 ## Features
 
-File Type Detection: Detects the file extension of each file in the specified folder.
+- File Type Detection: Detects the file extension of each file in the specified folder.
 
-Automatic Folder Creation: Creates a new folder for any previously undetected file type.
+- Automatic Folder Creation: Creates a new folder for any previously undetected file type.
 
-Recursive Folder Traversal: Moves files out of subdirectories within the "Files" folder.
+- Recursive Folder Traversal: Moves files out of subdirectories within the "Files" folder.
 
-Error Handling: Handles errors in file renaming, directory creation, and directory access with descriptive output.
+- Error Handling: Handles errors in file renaming, directory creation, and directory access with descriptive output.
 
 
 ## Usage
@@ -22,9 +22,9 @@ Error Handling: Handles errors in file renaming, directory creation, and directo
 
 
 3. Compile the code:
-
-gcc -o file_organizer file_organizer.c
-
+'''
+gcc file_organizer.c -o file_organizer
+'''
 
 4. Run the executable:
 
