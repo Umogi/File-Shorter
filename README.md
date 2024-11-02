@@ -46,11 +46,11 @@ The main components of this program include:
 
 - File and Directory Operations:
 
-    move_file() - Moves files between directories.
+     move_file() - Moves files between directories.
 
-    file_name_finder() - Finds files in the specified directory and categorizes them by type.
+     file_name_finder() - Finds files in the specified directory and categorizes them by type.
 
-    move_files() - Recursively moves files from subdirectories to the base "Files" directory.
+     move_files() - Recursively moves files from subdirectories to the base "Files" directory.
 
 
 Main Program:
