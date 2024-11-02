@@ -1,8 +1,8 @@
-File Organizer by Type
+# File Organizer by Type
 
 This program organizes files within a given directory ("Files" folder) based on their file type. It scans all files in the "Files" folder, including those nested within subdirectories, and moves them into newly created directories based on their file extensions. If a file with a new extension is found, the program creates a corresponding folder automatically.
 
-Features
+## Features
 
 File Type Detection: Detects the file extension of each file in the specified folder.
 
@@ -13,7 +13,7 @@ Recursive Folder Traversal: Moves files out of subdirectories within the "Files"
 Error Handling: Handles errors in file renaming, directory creation, and directory access with descriptive output.
 
 
-Usage
+## Usage
 
 1. Clone the repository to your local machine.
 
@@ -34,7 +34,7 @@ gcc -o file_organizer file_organizer.c
 
 The program will automatically organize files by type within the "Files" folder, moving each to a folder named after its extension.
 
-Code Overview
+## Code Overview
 
 The main components of this program include:
 
