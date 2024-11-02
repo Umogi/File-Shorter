@@ -39,18 +39,18 @@ The main components of this program include:
 
 - File Type Management:
 
-    addExt() - Adds new file types to an array if not previously encountered.
+   - addExt() - Adds new file types to an array if not previously encountered.
 
-    lookForExt() - Searches for an existing file type in the array; adds if not found.
+   - lookForExt() - Searches for an existing file type in the array; adds if not found.
 
 
 - File and Directory Operations:
 
    - move_file() - Moves files between directories.
 
-     file_name_finder() - Finds files in the specified directory and categorizes them by type.
+   - file_name_finder() - Finds files in the specified directory and categorizes them by type.
 
-     move_files() - Recursively moves files from subdirectories to the base "Files" directory.
+   - move_files() - Recursively moves files from subdirectories to the base "Files" directory.
 
 
 Main Program:
