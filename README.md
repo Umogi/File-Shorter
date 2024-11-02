@@ -53,6 +53,6 @@ The main components of this program include:
    - move_files() - Recursively moves files from subdirectories to the base "Files" directory.
 
 
-Main Program:
+- Main Program:
 
-Sets up the base directory, scans files, organizes them by type, and creates necessary folders.
+    - Sets up the base directory, scans files, organizes them by type, and creates necessary folders.
