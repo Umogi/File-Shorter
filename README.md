@@ -56,3 +56,6 @@ The main components of this program include:
 - Main Program:
 
     - Sets up the base directory, scans files, organizes them by type, and creates necessary folders.
+
+## License
+This project is open-source and available under the MIT [LICENSE](LICENSE).
