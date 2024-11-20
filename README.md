@@ -1,29 +1,51 @@
-# File Organizer by Type
+# File Organizer and Tagging System
 
-This program organizes files within a given directory ("Files" folder) based on their file type. It scans all files in the "Files" folder, including those nested within subdirectories, and moves them into newly created directories based on their file extensions. If a file with a new extension is found, the program creates a corresponding folder automatically.
+This program organizes files based on their types, provides a tagging system for file management, and allows easy searching of files by name or tag. It is designed to run on Windows and simplifies file organization and retrieval tasks.
 
 ## Features
 
-- File Type Detection: Detects the file extension of each file in the specified folder.
+1. File Sorting by Type:
 
-- Automatic Folder Creation: Creates a new folder for any previously undetected file type.
+   - Automatically organizes files in the "Files" folder by their extensions.
+   - Creates new folders for each file type, named after the file extensions.
 
-- Recursive Folder Traversal: Moves files out of subdirectories within the "Files" folder.
+2. Tagging System:
 
-- Error Handling: Handles errors in file renaming, directory creation, and directory access with descriptive output.
+   - Allows users to assign up to 10 tags per file.
+   - Tags are stored in a `tags.txt` file in an unencrypted format for future searches.
 
+3. File Search:
+
+   - Search files by name: Finds files without requiring the extension.
+   - Search files by tag: Retrieves files based on their associated tags.
+   - Both search methods transfer matched files to a "Search" folder.
+
+4. Dynamic Folder Management:
+
+   - Ensures "Files" and "Search" folders are created at runtime if they don’t exist.
+
+5. Seamless Return to Original Location:
+
+   - Files moved to the "Search" folder during a search are restored to their original locations upon completion.
 
 ## Usage
 
 1. Clone the repository to your local machine.
+```
+git clone https://github.com/Umoig/File-Shorter.git
+cd File-Shorter
+```
 
-
-2. Place the files you want to organize into a folder named Files.
-
+2. Prepare the Environment:
+   - Place the files to be organized in a folder named Files in the same directory as the compiled executable.
 
 3. Compile the code:
 ```
-gcc main.c -o main
+gcc File_Shorter_WIN.c -o main
+```
+OR
+```
+gcc File_Shorter_Linux.c -o main
 ```
 
 4. Run the executable:
@@ -35,27 +57,24 @@ The program will automatically organize files by type within the "Files" folder,
 
 ## Code Overview
 
-The main components of this program include:
+1. Sorting:
 
-- File Type Management:
+   - Scans the Files folder for all files.
+   - Creates folders for new extensions and moves files accordingly.
+     
+2. Tagging:
 
-   - addExt() - Adds new file types to an array if not previously encountered.
+   - Allows users to add tags to files.
+   - Updates tags.txt for persistent tag storage.
 
-   - lookForExt() - Searches for an existing file type in the array; adds if not found.
+3. Searching:
 
+   - Searches files by name or tags.
+   - Matches are moved to the Search folder.
+   
+4. Restore Functionality:
 
-- File and Directory Operations:
-
-   - move_file() - Moves files between directories.
-
-   - file_name_finder() - Finds files in the specified directory and categorizes them by type.
-
-   - move_files() - Recursively moves files from subdirectories to the base "Files" directory.
-
-
-- Main Program:
-
-    - Sets up the base directory, scans files, organizes them by type, and creates necessary folders.
+   - Files moved to the Search folder can be returned to their original locations automatically.
 
 ## License
 This project is open-source and available under the MIT [LICENSE](LICENSE).
