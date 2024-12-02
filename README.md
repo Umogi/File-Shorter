@@ -20,11 +20,19 @@ This program organizes files based on their types, provides a tagging system for
    - Search files by tag: Retrieves files based on their associated tags.
    - Both search methods transfer matched files to a "Search" folder.
 
-4. Dynamic Folder Management:
+4. Editing System:
+
+   - Edit files name: Finds files and edits their name.
+   - Edit tags: Finds files and getting their tags.
+      - Add tags.
+      - Remove tags.
+      - Edit tag.  
+
+5. Dynamic Folder Management:
 
    - Ensures "Files" and "Search" folders are created at runtime if they don’t exist.
 
-5. Seamless Return to Original Location:
+6. Seamless Return to Original Location:
 
    - Files moved to the "Search" folder during a search are restored to their original locations upon completion.
 
