@@ -51,10 +51,6 @@ cd File-Shorter
 ```
 gcc File_Shorter_WIN.c -o main
 ```
-OR
-```
-gcc File_Shorter_Linux.c -o main
-```
 
 4. Run the executable:
 ```
