@@ -5,10 +5,11 @@
 #include <sys/stat.h>
 #include <conio.h>
 #include <windows.h>
+#include <unistd.h>
 
 #define MAX_TAGS 10
 #define MAX_TAG_LENGTH 50
-#define MAX_FILES 100
+#define MAX_FILES 10000
 
 typedef struct {
     char filePath[MAX_PATH];
@@ -22,6 +23,12 @@ int fileTagCount = 0;
 char exePath[MAX_PATH];
 char filesFolder[MAX_PATH];
 char searchFolder[MAX_PATH];
+
+int maxTags = 10;
+int contFlagTag = 0;
+int tagPrime = 0;
+char tags[10][50]; // Up to 10 tags
+char contTags[10][50]; // Up to 10 continuous tags
 
 // Create folder if it doesn't exist
 void createFolder(const char *folderName) {
@@ -49,70 +56,88 @@ void loadTags() {
     }
 
     fileTagCount = 0;
+
+    // Read the tags from the file
     while (fscanf(tagFile, "%s %d", fileTags[fileTagCount].filePath, &fileTags[fileTagCount].tagCount) == 2) {
         for (int i = 0; i < fileTags[fileTagCount].tagCount; i++) {
             fscanf(tagFile, "%s", fileTags[fileTagCount].tags[i]);
         }
         fileTagCount++;
     }
+
     fclose(tagFile);
 }
 
 // Add tags to a file and save in a text file
-void tagFile(const char *filePath) {
-    char tags[10][50]; // Up to 10 tags
-    int tagCount = 0;
-
+void tagFile(const char *filePath, int fileCount) {
+    int tagCount = tagPrime;
     const char *fileName = strrchr(filePath, '\\');
     fileName = (fileName) ? fileName + 1 : filePath;
 
     char newFilePath[MAX_PATH];
-    strcpy(newFilePath, filePath); // Default to the original file path
-
-    // Prompt for renaming
-    char newName[MAX_PATH];
-    char *ext = strrchr(fileName, '.');
-    printf("Would you like to rename %s ? (y/n): ", fileName);
-    char choice;
-    scanf(" %c", &choice);
-    getchar();
-
-    if (choice == 'y' || choice == 'Y') {
-        printf("Enter new name: ");
-        fgets(newName, sizeof(newName), stdin);
-        
-        fileName = newName;
-
-        // Remove newline character from fgets
-        char *newline = strchr(newName, '\n');
-        if (newline) *newline = '\0';
-
-        // Append the original file's extension
-        strcat(newName, ext);
-
-        // Create the new file path
-        char folderPath[MAX_PATH];
-        strcpy(folderPath, filePath);
-        char *lastSlash = strrchr(folderPath, '\\');
-        if (lastSlash) *(lastSlash + 1) = '\0'; // Keep only the folder part
-
-        sprintf(newFilePath, "%s%s", folderPath, newName);
-
-        if (rename(filePath, newFilePath) != 0) {
-            perror("Error renaming file");
-            return;
-        }
-    }
+    strcpy(newFilePath, filePath);
 
     // Adding files
     system("cls||clear");
-    printf("Enter tags for %s (max 10 tags, type 'done' to finish):\n", fileName);
-    while (tagCount < 10) {
+
+    char choise;
+    if(contFlagTag == 0){
+        printf("Any continuous tags? (y/n): ");
+        scanf(" %c", &choise);
+        system("cls||clear");
+
+        if(choise == 'y' || choise == 'Y'){
+            
+            contFlagTag = 1;
+
+            printf("Enter the continious tags for %s. Max %d tags, type 'done' to finish: \n", fileName, maxTags);
+            printf("Tags that will have also continious numbering add to them a '*'\n");
+            
+            while (tagCount < maxTags) {
+                printf("Tag %d: ", tagCount + 1);
+                scanf("%49s", contTags[tagCount]);
+                if(strcmp(contTags[tagCount], "done") == 0) break;
+                tagCount++;
+            }
+            
+            tagPrime = tagCount;
+        }
+    }else if(contFlagTag == 1){
+        printf("Continue the same tags? (y/n): ");
+        scanf(" %c", &choise);
+        system("cls||clear");
+
+        if(choise == 'n' || choise == 'N'){
+            contFlagTag = 0;
+            tagPrime = 0;
+        }
+    }
+
+    int Count = 0;
+    while (Count < tagCount + 1) {
+        if(strchr(contTags[Count], '*')){
+            sprintf(tags[Count], "%s", contTags[Count]);
+            size_t len = strlen(tags[Count]);
+            
+            tags[Count][len - 1] = '\0';
+
+            sprintf(tags[Count], "%s%d", tags[Count], fileCount);
+        }else{
+            sprintf(tags[Count], "%s", contTags[Count]);
+        }
+        Count++;
+    }
+
+    printf("Enter tags for %s. Max %d tags, type 'done' to finish: \n", fileName, maxTags-tagCount);
+    while (tagCount < maxTags) {
         printf("Tag %d: ", tagCount + 1);
         scanf("%49s", tags[tagCount]);
         if (strcmp(tags[tagCount], "done") == 0) break;
         tagCount++;
     }
+
+    // Reomoves the * and adds 
+    int numIncrim = 0;
 
     // Add to memory
     strcpy(fileTags[fileTagCount].filePath, newFilePath);
@@ -129,6 +154,7 @@ void tagFile(const char *filePath) {
     FILE *tagFile = fopen(tagFilePath, "a");
     if (!tagFile) {
         perror("Error opening tags file");
+        Sleep(1);
         return;
     }
 
@@ -142,12 +168,16 @@ void tagFile(const char *filePath) {
 
 // Sort files by extension and add tags
 void sortFiles() {
+    system("cls||clear");
+
     printf("Put your files in the 'Files' folder and press Enter to start sorting.\n");
-    _getch();
-    
+    getchar();
+    system("cls||clear");
+
     DIR *dir = opendir(filesFolder);
     if (!dir) {
         perror("Error opening 'Files' folder");
+        sleep(1);
         return;
     }
 
@@ -157,6 +187,9 @@ void sortFiles() {
             continue;
         }
 
+        char entryPath[MAX_PATH];
+        sprintf(entryPath, "%s\\%s", filesFolder, entry->d_name);
+
         char *ext = strrchr(entry->d_name, '.');
         if (ext) {
             char extFolder[MAX_PATH];
@@ -164,19 +197,130 @@ void sortFiles() {
 
             createFolder(extFolder);
 
+            // Prompt for renaming
+            char newName[MAX_PATH];
+            printf("Would you like to rename %s ? (y/n): ", entry->d_name);
+            char choice;
+            scanf(" %c", &choice);
+            getchar();
+            system("cls||clear");
+
+            if (choice == 'y' || choice == 'Y') {
+                printf("Enter new name: ");
+                fgets(newName, sizeof(newName), stdin);
+
+                // Remove newline character from fgets
+                char *newline = strchr(newName, '\n');
+                if (newline) *newline = '\0';
+                
+                strcat(newName, ext);
+            }else{
+                strcpy(newName, entry->d_name);
+            }
+
             // Move file
-            char srcPath[MAX_PATH], destPath[MAX_PATH];
-            sprintf(srcPath, "%s\\%s", filesFolder, entry->d_name);
-            sprintf(destPath, "%s\\%s", extFolder, entry->d_name);
-            rename(srcPath, destPath);
+            char destPath[MAX_PATH];
+            sprintf(destPath, "%s\\%s", extFolder, newName);
+            if (rename(entryPath, destPath) != 0) {
+                perror("\nError renaming/moving file");
+                sleep(1);
+
+                int counter = 1;
+                while (access(destPath, F_OK) == 0) { // Check if file exists
+                    char uniqueName[MAX_PATH];
+                    char baseName[MAX_PATH];
+                    strncpy(baseName, newName, ext - entry->d_name); // Extract base name
+                    baseName[ext - entry->d_name] = '\0';
+
+                    sprintf(uniqueName, "%s%d%s", baseName, counter, ext);
+                    sprintf(destPath, "%s\\%s", extFolder, uniqueName);
+                    counter++;
+                }
+                rename(entryPath, destPath);
+            }
 
             // Add tags
-            tagFile(destPath);
+            tagFile(destPath, 0);
         }
     }
     closedir(dir);
 
     printf("Sorting complete!\n");
+    Sleep(1);
+}
+
+void contNameSort(){
+    system("cls||clear");
+
+    printf("Put your files in the 'Files' folder and press Enter to start sorting.\n");
+    getchar();
+    system("cls||clear");
+
+    DIR *dir = opendir(filesFolder);
+    if(!dir) {
+        perror("Error opening 'Files' folder");
+        Sleep(1);
+        return;
+    }
+
+    struct dirent *entry;
+    int fileCount = 0;
+    
+    char newName[128];
+    printf("What will the countinuous name will be: ");
+    scanf(" %128s", &newName);
+
+    while((entry = readdir(dir)) != NULL) {
+        if (strcmp(entry->d_name, ".") == 0 || strcmp(entry->d_name, "..") == 0) {
+            continue;
+        }
+
+        char entryPath[MAX_PATH];
+        sprintf(entryPath, "%s\\%s", filesFolder, entry->d_name);
+        
+        char *ext = strrchr(entry->d_name, '.');
+        if(ext){
+            char extFolder[MAX_PATH];
+            sprintf(extFolder, "%s\\%s", exePath, ext + 1);
+
+            createFolder(extFolder);
+
+            // Countinuous naming system
+            fileCount++;
+            char newFileName[MAX_PATH];
+            sprintf(newFileName, "%s%d", newName, fileCount);
+            strcat(newFileName, ext);
+
+            // Move file
+            char destPath[MAX_PATH];
+            sprintf(destPath, "%s\\%s", extFolder, newFileName);
+            if (rename(entryPath, destPath) != 0) {
+                perror("Error renaming/moving file");
+                Sleep(1);
+            }
+
+            // Add tags
+            tagFile(destPath, fileCount);
+
+            // Qustion !
+            system("cls||clear");
+            printf("Countinue the same name? (y/n): ");
+            char choice;
+            scanf(" %c", &choice);
+            if(choice == 'n' || choice == 'N') {
+                fileCount = 0;
+
+                system("cls||clear");
+                printf("What will the new countinuous name will be: ");
+                scanf(" %128s", &newName);
+            }
+            
+        }
+    }
+    closedir(dir);
+
+    printf("Sorting complete!\n");
+    Sleep(1);
 }
 
 // Transfer file to a folder
@@ -193,10 +337,17 @@ void searchByTag() {
     printf("Enter tag: ");
     scanf("%49s", searchTag);
 
+    DIR *dir = opendir(exePath);
+    if (!dir) {
+        perror("Error opening parent folder");
+        return;
+    }
+
     int found = 0;
     for (int i = 0; i < fileTagCount; i++) {
         for (int j = 0; j < fileTags[i].tagCount; j++) {
-            if (strstr(fileTags[i].tags[j], searchTag) == 0) {
+            if (strcmp(searchTag, fileTags[i].tags[j]) == 0) {
+                printf("%s\n", fileTags[i].filePath);
                 transferFile(fileTags[i].filePath, searchFolder);
                 found = 1;
                 break;
@@ -206,9 +357,12 @@ void searchByTag() {
 
     if (!found) {
         printf("No files found with the tag '%s'.\n", searchTag);
+        Sleep(1);
     } else {
         printf("Search complete. Files moved to 'Search' folder.\n");
+        Sleep(1);
     }
+
 }
 
 // Search files by name
@@ -221,12 +375,13 @@ void searchByName() {
     DIR *dir = opendir(exePath);
     if (!dir) {
         perror("Error opening parent folder");
+        Sleep(1);
         return;
     }
 
     struct dirent *entry;
     while ((entry = readdir(dir)) != NULL) {
-        if (entry->d_type == DT_DIR && strcmp(entry->d_name, "Files") != 0 && strcmp(entry->d_name, "Search") != 0) {
+        if (strcmp(entry->d_name, "Files") != 0 && strcmp(entry->d_name, "Search") != 0) {
             char folderPath[MAX_PATH];
             sprintf(folderPath, "%s\\%s", exePath, entry->d_name);
 
@@ -235,6 +390,7 @@ void searchByName() {
 
             struct dirent *subentry;
             while ((subentry = readdir(subdir)) != NULL) {
+                
                 if (strstr(subentry->d_name, searchName)) {
                     char filePath[MAX_PATH];
                     sprintf(filePath, "%s\\%s", folderPath, subentry->d_name);
@@ -246,11 +402,14 @@ void searchByName() {
     }
     closedir(dir);
 
-    printf("Search complete. Files moved to 'Search' folder.\n");
+    printf("\nSearch complete. Files moved to 'Search' folder.\n");
+    Sleep(1);
 }
 
 void editName(){
     char searchName[100];
+    
+    system("cls||clear");
     printf("Enter file name for renaming (without extension): ");
     scanf("%99s", searchName);
 
@@ -261,6 +420,7 @@ void editName(){
     FILE *tagFile = fopen(tagFilePath, "r");
     if (!tagFile) {
         perror("Error opening tags file");
+        Sleep(1);
         return;
     }
 
@@ -294,6 +454,7 @@ void editName(){
 
             // Prompt for new name
             char newFileName[100];
+            system("cls||clear");
             printf("File found: %s\n", fileName);
             printf("Enter the new name (without extension): ");
             scanf("%99s", newFileName);
@@ -309,19 +470,22 @@ void editName(){
             // Rename the file on disk
             if (rename(tempTags[i].filePath, newFilePath) != 0) {
                 perror("Error renaming file");
+                Sleep(1);
                 return;
             }
 
             // Update the memory
             strcpy(tempTags[i].filePath, newFilePath); 
 
-            printf("File renamed to: %s\n", newFilePath);
+            printf("\nFile renamed to: %s\n", newFilePath);
+            Sleep(1);
             break;
         }
     }
 
     if (!found) {
         printf("File '%s' not found.\n", searchName);
+        Sleep(1);
         return;
     }
 
@@ -329,6 +493,7 @@ void editName(){
     tagFile = fopen(tagFilePath, "w");
     if (!tagFile) {
         perror("Error writing tags file");
+        Sleep(1);
         return;
     }
 
@@ -341,11 +506,13 @@ void editName(){
     }
     fclose(tagFile);
 
-    printf("File name updated successfully.\n");
+    printf("\nFile name updated successfully.\n");
+    Sleep(1);
 }
 
 void editTags() {
     char searchName[MAX_PATH];
+    system("cls||clear");
     printf("Enter the name of the file to edit tags (with extension): ");
     scanf("%s", searchName);
 
@@ -356,6 +523,7 @@ void editTags() {
     FILE *tagFile = fopen(tagFilePath, "r");
     if (!tagFile) {
         perror("Error opening tags file");
+        Sleep(1);
         return;
     }
 
@@ -457,12 +625,14 @@ void editTags() {
 
     if (!found) {
         printf("File '%s' not found.\n", searchName);
+        Sleep(1);
         return;
     }
 
     tagFile = fopen(tagFilePath, "w");
     if (!tagFile) {
         perror("Error opening tags file");
+        Sleep(1);
         return;
     }
 
@@ -476,6 +646,7 @@ void editTags() {
 
     fclose(tagFile);
     printf("Tags updated successfully.\n");
+    Sleep(1);
 }
 
 
@@ -484,35 +655,52 @@ void returnFiles() {
     DIR *dir = opendir(searchFolder);
     if (!dir) {
         perror("Error opening 'Search' folder");
+        Sleep(1);
         return;
     }
 
     struct dirent *entry;
+    
     while ((entry = readdir(dir)) != NULL) {
-        if (entry->d_type == DT_REG) {
-            char filePath[MAX_PATH];
-            sprintf(filePath, "%s\\%s", searchFolder, entry->d_name);
+        if (strcmp(entry->d_name, ".") == 0 || strcmp(entry->d_name, "..") == 0) {
+            continue;
+        }
 
-            // Read original path from tags.txt
-            char tagFilePath[MAX_PATH];
-            sprintf(tagFilePath, "%s\\tags.txt", exePath);
+        char filePath[MAX_PATH];
+        sprintf(filePath, "%s\\%s", searchFolder, entry->d_name);
 
-            FILE *tagFile = fopen(tagFilePath, "r");
-            if (!tagFile) continue;
+        // Read original path from tags.txt
+        char tagFilePath[MAX_PATH];
+        sprintf(tagFilePath, "%s\\tags.txt", exePath);
 
+        FILE *tagFile = fopen(tagFilePath, "r");
+        if (!tagFile) continue;
+
+        char line[MAX_PATH * 2];  // Buffer to hold each line
+        int found = 0;
+
+        while (fgets(line, sizeof(line), tagFile)) {
             char origFilePath[MAX_PATH];
-            while (fscanf(tagFile, "%s", origFilePath) == 1) {
-                if (strstr(origFilePath, entry->d_name)) {
+            // Extract the first token (the file path)
+            if (sscanf(line, "%s", origFilePath) == 1) {
+                // Compare only the file names
+                const char *fileNameInTag = strrchr(origFilePath, '\\');
+                if (!fileNameInTag) fileNameInTag = origFilePath;
+                else fileNameInTag++;
+
+                if (strcmp(fileNameInTag, entry->d_name) == 0) {
+                    
                     rename(filePath, origFilePath);
+                    found = 1;
                     break;
                 }
             }
-            fclose(tagFile);
         }
     }
     closedir(dir);
 
-    printf("Files returned to their original folders.\n");
+    printf("\nFiles returned to their original folders.\n");
+    Sleep(1);
 }
 
 // Search files by name or tag
@@ -553,6 +741,26 @@ void editFiles(){
     }
 }
 
+void sortOptionsFiles(){
+    int choice;
+    tagPrime = 0;
+    contFlagTag = 0;
+    system("cls||clear");
+    printf("Naming Options:\n");
+    printf("1. Optional naming\n");
+    printf("2. Continuous naming\n");
+    printf("Choice: ");
+    scanf("%d", &choice);
+    getchar(); // Clear input buffer
+    if (choice == 1) {
+        sortFiles();
+    } else if (choice == 2) {
+        contNameSort();
+    } else {
+        printf("Invalid choice!\n");
+    }
+}
+
 int main() {
     // Get the path of the executable
     GetModuleFileName(NULL, exePath, MAX_PATH);
@@ -585,7 +793,7 @@ int main() {
 
         switch (choice) {
             case 1:
-                sortFiles();
+                sortOptionsFiles();
                 break;
             case 2:
                 searchFiles();
